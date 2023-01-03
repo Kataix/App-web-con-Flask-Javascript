@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapa Temuco</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin="" />
+  <!-- Make sure you put this AFTER Leaflet's CSS -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+    crossorigin=""></script>
+
+  <script type="text/javascript" src="/static/jquery-3.4.1.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+  <script type="text/javascript" src="/static/geojson.js"></script>
+
+</head>
+<style>
+
+</style>
+
+<body>
+  <div class="container">
+
+    <nav aria-label="Page navigation example">
+        <ul class="pagination">
+            <li class="page-item"><a class="page-link" href="/3">Previous</a></li>
+            <li class="page-item"><a class="page-link" href="/1">Item 1 / 2</a></li>
+            <li class="page-item"><a class="page-link" href="/3">Item 3</a></li>
+            <li class="page-item"><a class="page-link" href="/4">Item 4</a></li>
+       
+        </ul>
+    </nav>
+</div>
+
+  <div class="d-flex justify-content-center mt-5">
+
+    <div id="mapid" style="width: 600px; height: 400px;"></div>
+
+  </div>
+  <div class="container">
+    <div class="d-flex justify-content-center mt-5">
+      <select id="vehiculo" class="m-1" name="">
+        <option value="1">Vehiculo 1</option>
+        <option value="2">Vehiculo 2</option>
+        <option value="3">Vehiculo 3</option>
+        <option value="4">Vehiculo 4</option>
+        <option value="5">Vehiculo 5</option>
+        <option value="6">Vehiculo 6</option>
+        <option value="7">Vehiculo 7</option>
+        <option value="8">Vehiculo 8</option>
+        <option value="9">Vehiculo 9</option>
+      </select>
+      <input class="m-1" type="date" id="fecha" value="2018-07-18">
+
+    </div>
+
+  </div>
+  <div class="d-flex justify-content-center ">
+    <a id="btn" href="" class="btn btn-primary">Graficar en mapa</a>
+  </div>
+
+
+
+
+</body>
+<script>
+
+$(document).ready(function () {
+
+let boton = document.querySelector('#btn')
+
+let mymap = L.map('mapid').setView([-38.74039392086135, -72.59666919708252], 13);
+
+L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+    maxZoom: 18,
+    id: 'mapbox/streets-v11',
+    tileSize: 512,
+    zoomOffset: -1
+}).addTo(mymap);
+
+boton.addEventListener('click', (e) => {
+    e.preventDefault()
+
+    let id = document.querySelector('#vehiculo').value
+    let date = document.querySelector('#fecha').value
+    let mapa = document.querySelector('#mapid').innerHtml = ''
+
+    $.getJSON(`http://127.0.0.1:5000/gps_track/${id}/${date}`, function (data,) {
+
+        let latitud = -38.7508;
+        let longitud = -72.6063;;
+        mymap.remove();
+        // mymap.off();
+
+        if (typeof data.datos[0] === 'undefined') {
+            alert('No hay registros de ese día')
+        } else {
+            longitud = data.datos[0][0]
+            latitud = data.datos[0][1]
+        }
+        console.log(latitud, longitud)
+        //-38.7508/-72.6063
+
+        mymap = L.map('mapid',{attributionControl: false}).setView([latitud, longitud], 13);
+
+        L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+            maxZoom: 18,
+            id: 'mapbox/streets-v11',
+            tileSize: 512,
+            zoomOffset: -1
+        }).addTo(mymap);
+
+        var geojson = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {},
+                    "geometry": {
+                        "type": "LineString",
+                        "coordinates": data.datos
+                    }
+                }
+            ]
+        }
+
+        L.geoJSON(geojson).addTo(mymap)
+
+    });
+
+   
+})
+$('.leaflet-control-attribution').hide()
+});
+</script>
+
+
+</html>

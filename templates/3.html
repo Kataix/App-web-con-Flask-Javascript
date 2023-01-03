@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapa Temuco</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin="" />
+  <!-- Make sure you put this AFTER Leaflet's CSS -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+    crossorigin=""></script>
+
+  <script type="text/javascript" src="/static/jquery-3.4.1.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+
+
+</head>
+<style>
+
+</style>
+
+<body>
+  <div class="container">
+    <nav aria-label="Page navigation example">
+      <ul class="pagination">
+        <li class="page-item"><a class="page-link" href="/1">Previous</a></li>
+        <li class="page-item"><a class="page-link" href="/1">Item 1 / 2</a></li>
+        <li class="page-item"><a class="page-link" href="/3">Item 3</a></li>
+        <li class="page-item"><a class="page-link" href="/4">Item 4</a></li>
+        <li class="page-item"><a class="page-link" href="/4">Next</a></li>
+      </ul>
+    </nav>
+  </div>
+
+  <div class="mx-autos">
+
+    <div class="container">
+      <div id="mapid" class="m-5" style="width: auto; height: 400px;"></div>
+
+    </div>
+
+    <div class="container">
+      <h4 class="text-center bg-primary  text-white m-0"> Estaciones </h4>
+      <p class="text-center bg-primary  text-white" id='canvas_title'> Estacion 1 </p>
+      <canvas id=migraf>
+
+      </canvas>
+
+    </div>
+
+  </div>
+
+
+  </div>
+
+
+</body>
+<script>
+
+
+  
+  var mymap = L.map('mapid').setView([-38.74039392086135, -72.59666919708252], 13);
+
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 15,
+
+    tileSize: 512,
+    zoomOffset: -1,
+    scrollWheelZoom: 'false'
+  }).addTo(mymap);
+
+
+
+  let station = L.icon({
+    iconUrl: "{{ url_for('static', filename = 'images/SA_01.png') }}",
+    iconSize: [40, 40],
+    iconAnchor: [20, 40]
+  })
+
+
+  var init = setInterval(load, 1000)
+
+
+
+  mymap.doubleClickZoom.disable()
+  L.marker([-38.74039392086190, -72.59666919708267], { icon: station }).addTo(mymap).bindPopup('Estacion 1')
+    .on('click', (e) => {
+      document.getElementById('canvas_title').innerHTML = 'Estacion 1'
+      clearInterval(init);
+      if (myChart) {
+        myChart.destroy()
+
+      }
+      init = setInterval(load, 1000)
+    });
+  L.marker([-38.73231890664387, -72.63101577671478], { icon: station }).addTo(mymap).bindPopup('Estacion 2')
+    .on('click', (e) => {
+      document.querySelector('#canvas_title').innerHTML = 'Estacion 2'
+      clearInterval(init);
+      if (myChart) {
+        myChart.destroy()
+
+      }
+      init = setInterval(load, 1000)
+    });
+  L.marker([-38.746779635705956, -72.6433753958554], { icon: station }).addTo(mymap).bindPopup('Estacion 3')
+    .on('click', (e) => {
+      document.querySelector('#canvas_title').innerHTML = 'Estacion 3'
+      clearInterval(init);
+      if (myChart) {
+        myChart.destroy()
+
+      }
+      init = setInterval(load, 1000)
+    });;
+  L.marker([-38.753339556388866, -72.60835647495696], { icon: station }).addTo(mymap).bindPopup('Estacion 4').on('click', (e) => {
+    document.querySelector('#canvas_title').innerHTML = 'Estacion 4'
+    clearInterval(init);
+    if (myChart) {
+      myChart.destroy()
+
+    }
+    init = setInterval(load, 1000)
+  });
+
+  L.marker([-38.76378063353135, -72.59437560976949], { icon: station }).addTo(mymap).bindPopup('Estacion 5').on('click', (e) => {
+    document.querySelector('#canvas_title').innerHTML = 'Estacion 5'
+    clearInterval(init);
+    if (myChart) {
+      myChart.destroy()
+
+    }
+
+    init = setInterval(load, 1000)
+  });
+
+  const estaciones = {
+    'uno': [-38.74039392086190, -72.59666919708267],
+    'dos': [-38.73231890664387, -72.63101577671478],
+    'tres': [-38.746779635705956, -72.6433753958554],
+    'cuatro': [-38.753339556388866, -72.60835647495696],
+    'cinco': [-38.76378063353135, -72.59437560976949]
+  }
+  // 38.76378063353135, lng: -72.59437560976949
+
+  mymap.on('dblclick', e => {
+
+    let latLng = mymap.mouseEventToLatLng(e.originalEvent);
+    console.log(latLng)
+
+    //L.marker([latLng.lat,latLng.lng],{icon: station_1}).addTo(mymap)
+    for (let ubicacion in estaciones) {
+
+      console.log('latitud: ' + estaciones[ubicacion][0] + ' Longiutd: ' + estaciones[ubicacion][1])
+
+    }
+
+
+  })
+
+
+
+  var hora = []
+  var datos = [
+    uno = [0],
+    diez = [0],
+    doscinco = [0],
+    temp = [0],
+    time = [],
+
+  ]
+  function getData() {
+    $.getJSON("http://127.0.0.1:5000/getdata", function (data) {
+
+
+
+      datos[0].push(data['01'][0]);
+      datos[1].push(data['10'][0]);
+      datos[2].push(data['25'][0]);
+      datos[3].push(data['te'][0]);
+      datos[4] = (data['time'])
+      hora.push(datos[4][3])
+      console.log(datos[4])
+
+      if (datos[0].length > 11) {
+
+        datos[0].shift();
+        datos[1].shift();
+        datos[2].shift();
+        datos[3].shift();
+        hora.shift();
+
+      }
+
+
+    });
+  };
+  var myChart = null;
+
+  function CrearGraficoP() {
+    var ctx = document.getElementById('migraf').getContext('2d');
+    myChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        responsive: true,
+        labels: hora,
+        datasets: [{
+          label: 'PM 01',
+          data: datos[0],
+          borderColor: 'rgb(255,0,0)',
+          steppedLine: true,
+          fill: false
+        },
+        {
+          label: 'PM 2.5',
+          data: datos[1],
+          borderColor: 'rgb(0,255,0)',
+          steppedLine: true,
+          fill: false
+        },
+        {
+          label: 'PM 10',
+          data: datos[2],
+          borderColor: 'rgb(0,0,255)',
+          steppedLine: true,
+          fill: false
+        },
+
+        ],
+      },
+      options: {
+        responsive: true,
+        title: {
+          display: false,
+          text: 'MP 1.5,2,10'
+        },
+        animation: {
+          duration: 0
+        }
+        ,
+        title: {
+          display: true,
+          text: 'Material Particulado en F(x) del Tiempo'
+        }
+
+      }
+    })
+  };
+
+  function load() {
+    getData();
+    CrearGraficoP();
+  };
+    //------Llamada a las funciones
+
+
+</script>
+
+
+</html>

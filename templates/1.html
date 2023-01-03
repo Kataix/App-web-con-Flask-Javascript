@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title></title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+
+    <script type="text/javascript" src="/static/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+</head>
+
+<body>
+    <nav aria-label="Page navigation example">
+      <ul class="pagination">
+        <li class="page-item"><a class="page-link" href="/1">Item 1 / 2</a></li>
+        <li class="page-item"><a class="page-link" href="/3">Item 3</a></li>
+        <li class="page-item"><a class="page-link" href="/4">Item 4</a></li>
+        <li class="page-item"><a class="page-link" href="/3">Next</a></li>
+      </ul>
+    </nav>
+    </div>
+    <div class="container">
+        <a href="" class=""></a>
+    </div>
+    <div class="container">
+        <div class="container">
+            <h5 id='dia'></h5>
+        </div>
+        <div id="chart">
+            <canvas id="canvasP" style="height:10vh;width:50vh"></canvas><br>
+            <canvas id="canvasT" style="height:10vh;width:50vh"></canvas>
+            <a href="" id='send' class='btn btn-success'>enviar grafico telegram</a>
+        </div>
+        <div class="container" id="grafico">
+
+        </div>
+    </div>
+</body>
+
+
+<script>
+
+    //Item 2
+    $('#send').click(function (e) {
+        e.preventDefault()
+        let url = 'http://127.0.0.1:5000/2'
+        let mp = document.getElementById('canvasP');
+        let temp = document.getElementById('canvasT');
+
+
+        let dataURL = [mp.toDataURL().replace(/^data:image\/(png|jpg);base64,/, ""), temp.toDataURL().replace(/^data:image\/(png|jpg);base64,/, "")];
+
+        console.log(dataURL);
+
+
+
+
+        $.ajax({
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            url: url,
+            data: JSON.stringify({ img: dataURL }),
+            success: function (data) {
+                console.log(data);
+            },
+            dataType: "json"
+        });
+    })
+
+    //item 1
+    var hora = []
+    var datos = [
+        uno = [0],
+        diez = [0],
+        doscinco = [0],
+        temp = [0],
+        time = [],
+
+    ]
+    function getData() {
+        $.getJSON("http://127.0.0.1:5000/getdata", function (data) {
+
+
+
+            datos[0].push(data['01'][0]);
+            datos[1].push(data['10'][0]);
+            datos[2].push(data['25'][0]);
+            datos[3].push(data['te'][0]);
+            datos[4] = (data['time'])
+            hora.push(datos[4][3])
+            //console.log(datos[4])
+
+            if (datos[0].length > 11) {
+
+                datos[0].shift();
+                datos[1].shift();
+                datos[2].shift();
+                datos[3].shift();
+                hora.shift();
+
+            }
+
+
+        });
+    };
+
+    function CrearGraficoP() {
+        var ctx = document.getElementById('canvasP').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                responsive: true,
+                labels: hora,
+                datasets: [{
+                    label: 'PM 01',
+                    data: datos[0],
+                    borderColor: 'rgb(255,0,0)',
+                    steppedLine: true,
+                    fill: false
+                },
+                {
+                    label: 'PM 2.5',
+                    data: datos[1],
+                    borderColor: 'rgb(0,255,0)',
+                    steppedLine: true,
+                    fill: false
+                },
+                {
+                    label: 'PM 10',
+                    data: datos[2],
+                    borderColor: 'rgb(0,0,255)',
+                    steppedLine: true,
+                    fill: false
+                },
+
+                ],
+            },
+            options: {
+                responsive: true,
+                title: {
+                    display: false,
+                    text: 'MP 1.5,2,10'
+                },
+                animation: {
+                    duration: 0
+                }
+                ,
+                title: {
+                    display: true,
+                    text: 'Material Particulado en F(x) del Tiempo'
+                }
+
+            }
+        })
+    };
+
+    function CrearGraficoT() {
+        var ctx = document.getElementById('canvasT').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                responsive: true,
+                labels: hora,
+                datasets: [{
+                    label: 'Temperatura',
+                    data: datos[3],
+                    borderColor: 'rgb(255,99,33)',
+                    steppedLine: true,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                animation: {
+                    duration: 1
+                },
+                title: {
+                    display: true,
+                    text: 'Temperatura En F(x) del tiempo'
+                }
+            }
+        }
+        )
+    };
+
+    function Sample() {
+        getData();
+        CrearGraficoP();
+        CrearGraficoT();
+    };
+    //------Llamada a las funciones    
+    CrearGraficoP();
+    CrearGraficoT();
+    setInterval(Sample, 1000);
+
+</script>
+
+</html>
